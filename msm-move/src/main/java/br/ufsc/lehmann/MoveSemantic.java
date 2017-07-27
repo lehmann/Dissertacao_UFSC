@@ -17,7 +17,7 @@ public class MoveSemantic extends Semantic<Move, Number> {
 
 	@Override
 	public boolean match(SemanticTrajectory a, int i, SemanticTrajectory b, int j, Number threshold) {
-		return distance(a, i, b, j).doubleValue() <= (threshold == null ? 0 : threshold.doubleValue());
+		return match(getData(a, i), getData(b, j), threshold);
 	}
 
 	@Override
@@ -31,11 +31,11 @@ public class MoveSemantic extends Semantic<Move, Number> {
 			return 0;
 		}
 		if (d1 == null || d2 == null) {
-			return 1;
+			return Double.MAX_VALUE;
 		}
 		double phi = Math.abs(d2.getAngle() - d1.getAngle()) % 360;
 		double distance = phi > 180 ? 360 - phi : phi;
-		return distance;
+		return (distance);
 	}
 
 }
