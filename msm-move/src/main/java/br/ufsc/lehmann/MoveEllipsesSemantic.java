@@ -2,15 +2,19 @@ package br.ufsc.lehmann;
 
 import br.ufsc.core.trajectory.Semantic;
 import br.ufsc.core.trajectory.SemanticTrajectory;
+import br.ufsc.core.trajectory.TPoint;
 import br.ufsc.core.trajectory.semantic.Move;
+import br.ufsc.ftsm.base.ETrajectory;
+import br.ufsc.ftsm.related.UMS;
+import br.ufsc.ftsm.util.CreateEllipseMath;
 
-public class MoveSemantic extends Semantic<Move, Number> {
+public class MoveEllipsesSemantic extends Semantic<Move, Number> {
 
-	private Fields field;
+	private UMS ums;
 
-	public MoveSemantic(int index, Fields field) {
+	public MoveEllipsesSemantic(int index) {
 		super(index);
-		this.field = field;
+		ums = new UMS();
 	}
 
 	@Override
@@ -36,18 +40,13 @@ public class MoveSemantic extends Semantic<Move, Number> {
 		if (d1 == null || d2 == null) {
 			return Double.MAX_VALUE;
 		}
-		if(field == Fields.ANGLE) {
-			double phi = Math.abs(d2.getAngle() - d1.getAngle()) % 360;
-			double distance = phi > 180 ? 360 - phi : phi;
-			return (distance);
-		} else if(field == Fields.DISTANCE) {
-			double distance = Math.abs(d2.getTraveledDistance() - d1.getTraveledDistance());
-			return distance;
-		}
-		throw new IllegalStateException("Unknown move field estimator: " + field.name());
+		TPoint[] d1Points = d1.getPoints();
+		TPoint[] d2Points = d2.getPoints();
+		ETrajectory T1 = CreateEllipseMath.createEllipticalTrajectoryFixed(d1.getMoveId(), d1Points);
+		ETrajectory T2 = CreateEllipseMath.createEllipticalTrajectoryFixed(d2.getMoveId(), d2Points);
+		return ums.getDistance(//
+				T1, //
+				T2);
 	}
 
-	public static enum Fields {
-		ANGLE, DISTANCE;
-	}
 }
