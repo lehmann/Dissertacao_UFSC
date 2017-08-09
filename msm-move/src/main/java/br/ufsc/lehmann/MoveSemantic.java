@@ -2,12 +2,16 @@ package br.ufsc.lehmann;
 
 import br.ufsc.core.trajectory.Semantic;
 import br.ufsc.core.trajectory.SemanticTrajectory;
+import br.ufsc.core.trajectory.semantic.AttributeDescriptor;
 import br.ufsc.core.trajectory.semantic.Move;
 
 public class MoveSemantic extends Semantic<Move, Number> {
 
-	public MoveSemantic(int index) {
+	private AttributeDescriptor<Move> desc;
+
+	public MoveSemantic(int index, AttributeDescriptor<Move> desc) {
 		super(index);
+		this.desc = desc;
 	}
 
 	@Override
@@ -33,9 +37,6 @@ public class MoveSemantic extends Semantic<Move, Number> {
 		if (d1 == null || d2 == null) {
 			return Double.MAX_VALUE;
 		}
-		double phi = Math.abs(d2.getAngle() - d1.getAngle()) % 360;
-		double distance = phi > 180 ? 360 - phi : phi;
-		return (distance);
+		return desc.distance(d1, d2);
 	}
-
 }
