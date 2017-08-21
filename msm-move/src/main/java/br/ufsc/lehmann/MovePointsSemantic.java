@@ -1,17 +1,19 @@
 package br.ufsc.lehmann;
 
+import br.ufsc.core.trajectory.GeographicDistanceFunction;
 import br.ufsc.core.trajectory.Semantic;
 import br.ufsc.core.trajectory.SemanticTrajectory;
-import br.ufsc.core.trajectory.semantic.AttributeDescriptor;
+import br.ufsc.core.trajectory.TPoint;
 import br.ufsc.core.trajectory.semantic.Move;
+import smile.math.distance.DynamicTimeWarping;
 
-public class MoveSemantic extends Semantic<Move, Number> {
+public class MovePointsSemantic extends Semantic<Move, Number> {
 
-	private AttributeDescriptor<Move, ? extends Object> desc;
+	private DynamicTimeWarping<TPoint> dtw;
 
-	public MoveSemantic(int index, AttributeDescriptor<Move, ? extends Object> desc) {
+	public MovePointsSemantic(int index, GeographicDistanceFunction func, Number geographicThreshold) {
 		super(index);
-		this.desc = desc;
+		dtw = new DynamicTimeWarping<TPoint>(new SmileDistanceWrapper(func, geographicThreshold));
 	}
 
 	@Override
@@ -37,6 +39,9 @@ public class MoveSemantic extends Semantic<Move, Number> {
 		if (d1 == null || d2 == null) {
 			return Double.MAX_VALUE;
 		}
-		return desc.distance(d1, d2);
+		TPoint[] d2Points = d2.getPoints();
+		TPoint[] d1Points = d1.getPoints();
+		return dtw.d(d1Points, d2Points) / Math.max(d1Points.length, d2Points.length);
 	}
+
 }

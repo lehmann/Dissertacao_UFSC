@@ -2,16 +2,19 @@ package br.ufsc.lehmann;
 
 import br.ufsc.core.trajectory.Semantic;
 import br.ufsc.core.trajectory.SemanticTrajectory;
-import br.ufsc.core.trajectory.semantic.AttributeDescriptor;
+import br.ufsc.core.trajectory.TPoint;
 import br.ufsc.core.trajectory.semantic.Move;
+import br.ufsc.ftsm.base.ETrajectory;
+import br.ufsc.ftsm.related.UMS;
+import br.ufsc.ftsm.util.CreateEllipseMath;
 
-public class MoveSemantic extends Semantic<Move, Number> {
+public class MoveEllipsesSemantic extends Semantic<Move, Number> {
 
-	private AttributeDescriptor<Move, ? extends Object> desc;
+	private UMS ums;
 
-	public MoveSemantic(int index, AttributeDescriptor<Move, ? extends Object> desc) {
+	public MoveEllipsesSemantic(int index) {
 		super(index);
-		this.desc = desc;
+		ums = new UMS();
 	}
 
 	@Override
@@ -37,6 +40,13 @@ public class MoveSemantic extends Semantic<Move, Number> {
 		if (d1 == null || d2 == null) {
 			return Double.MAX_VALUE;
 		}
-		return desc.distance(d1, d2);
+		TPoint[] d1Points = d1.getPoints();
+		TPoint[] d2Points = d2.getPoints();
+		ETrajectory T1 = CreateEllipseMath.createEllipticalTrajectoryFixed(d1.getMoveId(), d1Points);
+		ETrajectory T2 = CreateEllipseMath.createEllipticalTrajectoryFixed(d2.getMoveId(), d2Points);
+		return ums.getDistance(//
+				T1, //
+				T2);
 	}
+
 }

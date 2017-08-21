@@ -1,5 +1,8 @@
 package br.ufsc.lehmann;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import br.ufsc.core.trajectory.Semantic;
 import br.ufsc.core.trajectory.SemanticTrajectory;
 import br.ufsc.core.trajectory.semantic.Move;
@@ -8,13 +11,13 @@ import br.ufsc.ftsm.base.TrajectorySimilarityCalculator;
 import br.ufsc.ftsm.related.MSM;
 import br.ufsc.ftsm.related.MSM.MSMSemanticParameter;
 
-public class MSM_Move extends TrajectorySimilarityCalculator<SemanticTrajectory> {
+public class SMSM extends TrajectorySimilarityCalculator<SemanticTrajectory> {
 	
 	private MSM msm;
 	private double moveWeight;
-	private MSMMoveSemanticParameter moveParams;
+	private SMSMSemanticParameter moveParams;
 	
-	public MSM_Move(MSMMoveSemanticParameter moveParams, MSMSemanticParameter<?, ?>... params) {
+	public SMSM(SMSMSemanticParameter moveParams, MSMSemanticParameter<?, ?>... params) {
 		if(moveParams == null) {
 			throw new IllegalArgumentException("Params can not be null");
 		}
@@ -31,26 +34,22 @@ public class MSM_Move extends TrajectorySimilarityCalculator<SemanticTrajectory>
 	}
 
 	public double moveSimilarity(SemanticTrajectory A, SemanticTrajectory B) {
-		int n = A.length();
-		int m = B.length();
+		List<Move> tuplesA = tuples(A);
+		List<Move> tuplesB = tuples(B);
+		int n = tuplesA.size();
+		int m = tuplesB.size();
 		double bScore[] = new double[m];
 		
 		double parityAB = 0.0;
 		
 		for (int i = 0; i < n; i++) {
 			double maxScore = 0.0;
-			Move moveA = moveParams.getMoveSemantic().getData(A, i);
-			if(moveA == null) {
-				continue;
-			}
+			Move moveA = tuplesA.get(i);
 		
 			for (int j = 0; j < m; j++) {
 				double score = 0.0;
 				double semanticScore = 0;
-				Move moveB = moveParams.getMoveSemantic().getData(B, j);
-				if(moveB == null) {
-					continue;
-				}
+				Move moveB = tuplesB.get(j);
 				semanticScore += (moveParams.getStopSemantic().match(moveA.getStart(), moveB.getStart(), moveParams.getStopThreshold()) ? 1 : 0);
 				semanticScore += (moveParams.getStopSemantic().match(moveA.getEnd(), moveB.getEnd(), moveParams.getStopThreshold()) ? 1 : 0);
 				semanticScore += (moveParams.getMoveSemantic().match(moveA, moveB, moveParams.getMoveThreshold()) ? 1 : 0);
@@ -74,13 +73,24 @@ public class MSM_Move extends TrajectorySimilarityCalculator<SemanticTrajectory>
 		return similarity;
 	}
 	
-	public static class MSMMoveSemanticParameter {
+	private List<Move> tuples(SemanticTrajectory a) {
+		List<Move> ret = new ArrayList<Move>();
+		for (int i = 0; i < a.length(); i++) {
+			Move move = moveParams.getMoveSemantic().getData(a, i);
+			if(move != null) {
+				ret.add(move);
+			}
+		}
+		return ret;
+	}
+
+	public static class SMSMSemanticParameter {
 		private double weight;
 		private Semantic<Stop, Number> stopSemantic;
 		private Semantic<Move, Number> moveSemantic;
 		private Number stopThreshold;
 		private Number moveThreshold;
-		public MSMMoveSemanticParameter(Semantic<Stop, Number> stopSemantic, Number stopThreshold, Semantic<Move, Number> moveSemantic, Number moveThreshold, double weight) {
+		public SMSMSemanticParameter(Semantic<Stop, Number> stopSemantic, Number stopThreshold, Semantic<Move, Number> moveSemantic, Number moveThreshold, double weight) {
 			super();
 			this.stopSemantic = stopSemantic;
 			this.stopThreshold = stopThreshold;
