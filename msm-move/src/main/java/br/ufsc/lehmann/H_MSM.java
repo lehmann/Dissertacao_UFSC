@@ -5,6 +5,9 @@ import java.util.List;
 
 import br.ufsc.core.trajectory.Semantic;
 import br.ufsc.core.trajectory.SemanticTrajectory;
+import br.ufsc.core.trajectory.StopSemantic;
+import br.ufsc.core.trajectory.semantic.Attribute;
+import br.ufsc.core.trajectory.semantic.AttributeType;
 import br.ufsc.core.trajectory.semantic.Move;
 import br.ufsc.core.trajectory.semantic.Stop;
 import br.ufsc.ftsm.base.TrajectorySimilarityCalculator;
@@ -13,24 +16,20 @@ import br.ufsc.ftsm.related.MSM.MSMSemanticParameter;
 
 public class H_MSM extends TrajectorySimilarityCalculator<SemanticTrajectory> {
 	
-	private MSM msm;
-	private double moveWeight;
-	private H_MSM_SemanticParameter moveParams;
-	
-	public H_MSM(H_MSM_SemanticParameter moveParams, MSMSemanticParameter<?, ?>... params) {
+	private H_MSM_MoveSemanticParameters moveParams;
+	private H_MSM_StopSemanticParameters stopParams;
+
+	public H_MSM(H_MSM_MoveSemanticParameters moveParams, H_MSM_StopSemanticParameters stopParams) {
 		if(moveParams == null) {
 			throw new IllegalArgumentException("Params can not be null");
 		}
 		this.moveParams = moveParams;
-		this.moveWeight = moveParams.getWeight();
-		if(params != null) {
-			this.msm = new MSM(params);
-		}
+		this.stopParams = stopParams;
 	}
 
 	@Override
 	public double getSimilarity(SemanticTrajectory t1, SemanticTrajectory t2) {
-		return (msm != null ? msm.getSimilarity(t1, t2) : 0) * (1 - moveWeight) + moveSimilarity(t1, t2) * moveWeight;
+		return moveSimilarity(t1, t2);
 	}
 
 	public double moveSimilarity(SemanticTrajectory A, SemanticTrajectory B) {
@@ -47,12 +46,10 @@ public class H_MSM extends TrajectorySimilarityCalculator<SemanticTrajectory> {
 			Move moveA = tuplesA.get(i);
 		
 			for (int j = 0; j < m; j++) {
-				double stopScore = 0;
 				Move moveB = tuplesB.get(j);
-				stopScore += (moveParams.getStopSemantic().match(moveA.getStart(), moveB.getStart(), moveParams.getStopThreshold()) ? 1 : 0);
-				stopScore += (moveParams.getStopSemantic().match(moveA.getEnd(), moveB.getEnd(), moveParams.getStopThreshold()) ? 1 : 0);
-				if(stopScore == 2) {
-					double score = (moveParams.getMoveSemantic().match(moveA, moveB, moveParams.getMoveThreshold()) ? 1 : 0);
+				boolean stopMatch = stopParams.match(moveA, moveB);
+				if(stopMatch) {
+					double score = (moveParams.score(moveA, moveB));
 					
 					if (score >= maxScore) {
 						maxScore = score;
@@ -84,34 +81,84 @@ public class H_MSM extends TrajectorySimilarityCalculator<SemanticTrajectory> {
 		return ret;
 	}
 
-	public static class H_MSM_SemanticParameter {
-		private double weight;
-		private Semantic<Stop, Number> stopSemantic;
-		private Semantic<Move, Number> moveSemantic;
-		private Number stopThreshold;
-		private Number moveThreshold;
-		public H_MSM_SemanticParameter(Semantic<Stop, Number> stopSemantic, Number stopThreshold, Semantic<Move, Number> moveSemantic, Number moveThreshold, double weight) {
-			super();
+	public static class H_MSM_StopSemanticParameters {
+		private H_MSM_DimensionParameters[] dimensions;
+		private StopSemantic stopSemantic;
+		public H_MSM_StopSemanticParameters(StopSemantic stopSemantic, H_MSM_DimensionParameters[] dimensions) {
 			this.stopSemantic = stopSemantic;
-			this.stopThreshold = stopThreshold;
-			this.moveSemantic = moveSemantic;
-			this.moveThreshold = moveThreshold;
+			this.dimensions = dimensions;
+		}
+		public boolean match(Move moveA, Move moveB) {
+			for (int i = 0; i < dimensions.length; i++) {
+				boolean matchStart = false;
+				Number threshold = dimensions[i].threshold;
+				AttributeType attr = dimensions[i].attr;
+				Semantic semantic = dimensions[i].semantic;
+				if(moveA.getStart() == null && moveB.getStart() == null) {
+					matchStart = true;
+				} else if(moveA.getStart() != null && moveB.getStart() != null) {
+					matchStart = semantic.distance(attr.getValue(moveA.getStart()), attr.getValue(moveB.getStart())) <= (threshold == null ? 0 : threshold.doubleValue());
+				}
+				if(!matchStart) {
+					return false;
+				}
+				boolean matchEnd = false;
+				if(moveA.getEnd() == null && moveB.getEnd() == null) {
+					matchEnd = true;
+				} else if(moveA.getEnd() != null && moveB.getEnd() != null) {
+					matchEnd = semantic.distance(attr.getValue(moveA.getEnd()), attr.getValue(moveB.getEnd())) <= (threshold == null ? 0 : threshold.doubleValue());
+				}
+				if(!matchEnd) {
+					return false;
+				}
+			}
+			return true;
+		}
+	}
+
+	public static class H_MSM_MoveSemanticParameters {
+		private MoveSemantic semantic;
+		private H_MSM_DimensionParameters[] dimensions;
+		public H_MSM_MoveSemanticParameters(MoveSemantic semantic, H_MSM_DimensionParameters[] dimensions) {
+			this.semantic = semantic;
+			this.dimensions = dimensions;
+		}
+		public MoveSemantic getMoveSemantic() {
+			return semantic;
+		}
+		public double score(Move moveA, Move moveB) {
+			double score = 0.0;
+			for (int i = 0; i < dimensions.length; i++) {
+				score += dimensions[i].semantic.distance(dimensions[i].attr.getValue(moveA), dimensions[i].attr.getValue(moveB)) * dimensions[i].weight;
+			}
+			return score;
+		}
+	}
+
+	public static class H_MSM_DimensionParameters<T> {
+		private AttributeType attr;
+		private Semantic<T, Number> semantic;
+		private Number threshold;
+		private double weight;
+		public H_MSM_DimensionParameters(Semantic<T, Number> semantic, AttributeType attr, Number threshold, double weight) {
+			super();
+			this.semantic = semantic;
+			this.attr = attr;
+			this.threshold = threshold;
 			this.weight = weight;
+		}
+		public AttributeType getAttr() {
+			return attr;
+		}
+		public Semantic<T, Number> getSemantic() {
+			return semantic;
+		}
+		public Number getThreshold() {
+			return threshold;
 		}
 		public double getWeight() {
 			return weight;
 		}
-		public Semantic<Stop, Number> getStopSemantic() {
-			return stopSemantic;
-		}
-		public Semantic<Move, Number> getMoveSemantic() {
-			return moveSemantic;
-		}
-		public Number getStopThreshold() {
-			return stopThreshold;
-		}
-		public Number getMoveThreshold() {
-			return moveThreshold;
-		}
+		
 	}
 }
