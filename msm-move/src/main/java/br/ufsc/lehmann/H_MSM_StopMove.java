@@ -6,20 +6,16 @@ import java.util.List;
 import br.ufsc.core.trajectory.Semantic;
 import br.ufsc.core.trajectory.SemanticTrajectory;
 import br.ufsc.core.trajectory.StopSemantic;
-import br.ufsc.core.trajectory.semantic.Attribute;
 import br.ufsc.core.trajectory.semantic.AttributeType;
 import br.ufsc.core.trajectory.semantic.Move;
-import br.ufsc.core.trajectory.semantic.Stop;
 import br.ufsc.ftsm.base.TrajectorySimilarityCalculator;
-import br.ufsc.ftsm.related.MSM;
-import br.ufsc.ftsm.related.MSM.MSMSemanticParameter;
 
-public class H_MSM extends TrajectorySimilarityCalculator<SemanticTrajectory> {
+public class H_MSM_StopMove extends TrajectorySimilarityCalculator<SemanticTrajectory> {
 	
 	private H_MSM_MoveSemanticParameters moveParams;
 	private H_MSM_StopSemanticParameters stopParams;
 
-	public H_MSM(H_MSM_MoveSemanticParameters moveParams, H_MSM_StopSemanticParameters stopParams) {
+	public H_MSM_StopMove(H_MSM_MoveSemanticParameters moveParams, H_MSM_StopSemanticParameters stopParams) {
 		if(moveParams == null) {
 			throw new IllegalArgumentException("Params can not be null");
 		}
@@ -48,13 +44,14 @@ public class H_MSM extends TrajectorySimilarityCalculator<SemanticTrajectory> {
 			for (int j = 0; j < m; j++) {
 				Move moveB = tuplesB.get(j);
 				boolean stopMatch = stopParams.match(moveA, moveB);
+				double score = stopParams.score(moveA, moveB) * stopParams.weight;
 				if(stopMatch) {
-					double score = (moveParams.similarity(moveA, moveB));
-					
-					if (score >= maxScore) {
-						maxScore = score;
-						bScore[j] = maxScore > bScore[j] ? maxScore : bScore[j];
-					}
+					score += (moveParams.score(moveA, moveB)) * moveParams.weight;
+				}
+				
+				if (score >= maxScore) {
+					maxScore = score;
+					bScore[j] = maxScore > bScore[j] ? maxScore : bScore[j];
 				}
 			}
 			parityAB += maxScore;
@@ -84,9 +81,14 @@ public class H_MSM extends TrajectorySimilarityCalculator<SemanticTrajectory> {
 	public static class H_MSM_StopSemanticParameters {
 		private H_MSM_DimensionParameters[] dimensions;
 		private StopSemantic stopSemantic;
+		private double weight;
 		public H_MSM_StopSemanticParameters(StopSemantic stopSemantic, H_MSM_DimensionParameters[] dimensions) {
+			this(stopSemantic, dimensions, 0.5);
+		}
+		public H_MSM_StopSemanticParameters(StopSemantic stopSemantic, H_MSM_DimensionParameters[] dimensions, double weight) {
 			this.stopSemantic = stopSemantic;
 			this.dimensions = dimensions;
+			this.weight = weight;
 		}
 		public boolean match(Move moveA, Move moveB) {
 			for (int i = 0; i < dimensions.length; i++) {
@@ -114,19 +116,43 @@ public class H_MSM extends TrajectorySimilarityCalculator<SemanticTrajectory> {
 			}
 			return true;
 		}
+		public double score(Move moveA, Move moveB) {
+			double score = 0.0;
+			for (int i = 0; i < dimensions.length; i++) {
+				AttributeType attr = dimensions[i].attr;
+				Semantic semantic = dimensions[i].semantic;
+				double weight = dimensions[i].weight;
+				if(moveA.getStart() == null && moveB.getStart() == null) {
+					score += weight;
+				} else if(moveA.getStart() != null && moveB.getStart() != null) {
+					score += semantic.similarity(attr.getValue(moveA.getStart()), attr.getValue(moveB.getStart()), dimensions[i].threshold) * weight;
+				}
+				if(moveA.getEnd() == null && moveB.getEnd() == null) {
+					score += weight;
+				} else if(moveA.getEnd() != null && moveB.getEnd() != null) {
+					score += semantic.similarity(attr.getValue(moveA.getEnd()), attr.getValue(moveB.getEnd()), dimensions[i].threshold) * weight;
+				}
+			}
+			return score;
+		}
 	}
 
 	public static class H_MSM_MoveSemanticParameters {
 		private MoveSemantic semantic;
 		private H_MSM_DimensionParameters[] dimensions;
+		private double weight;
 		public H_MSM_MoveSemanticParameters(MoveSemantic semantic, H_MSM_DimensionParameters[] dimensions) {
+			this(semantic, dimensions, 0.5);
+		}
+		public H_MSM_MoveSemanticParameters(MoveSemantic semantic, H_MSM_DimensionParameters[] dimensions, double weight) {
 			this.semantic = semantic;
 			this.dimensions = dimensions;
+			this.weight = weight;
 		}
 		public MoveSemantic getMoveSemantic() {
 			return semantic;
 		}
-		public double similarity(Move moveA, Move moveB) {
+		public double score(Move moveA, Move moveB) {
 			double score = 0.0;
 			for (int i = 0; i < dimensions.length; i++) {
 				score += dimensions[i].semantic.similarity(dimensions[i].attr.getValue(moveA), dimensions[i].attr.getValue(moveB), dimensions[i].threshold) * dimensions[i].weight;
@@ -141,7 +167,6 @@ public class H_MSM extends TrajectorySimilarityCalculator<SemanticTrajectory> {
 		private Number threshold;
 		private double weight;
 		public H_MSM_DimensionParameters(Semantic<T, Number> semantic, AttributeType attr, Number threshold, double weight) {
-			super();
 			this.semantic = semantic;
 			this.attr = attr;
 			this.threshold = threshold;
