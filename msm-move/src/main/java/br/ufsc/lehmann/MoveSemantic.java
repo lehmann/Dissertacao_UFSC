@@ -35,7 +35,7 @@ public class MoveSemantic extends Semantic<Move, Number> {
 			return 0;
 		}
 		if (d1 == null || d2 == null) {
-			return Double.MAX_VALUE;
+			return desc.maxDistance();
 		}
 		return desc.distance(d1, d2);
 	}

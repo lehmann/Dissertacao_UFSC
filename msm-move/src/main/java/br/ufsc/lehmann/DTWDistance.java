@@ -28,5 +28,10 @@ public class DTWDistance implements IDistanceFunction<TPoint[]> {
 	public double convert(double units) {
 		return units;
 	}
+	
+	@Override
+	public double maxDistance() {
+		return 1;
+	}
 
 }

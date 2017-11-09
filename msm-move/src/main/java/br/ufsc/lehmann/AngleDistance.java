@@ -10,16 +10,21 @@ public class AngleDistance implements IDistanceFunction<Double> {
 			return 0;
 		}
 		if (p == null || d == null) {
-			return Double.MAX_VALUE;
+			return 1;
 		}
 		double phi = Math.abs(p - d) % 360;
 		double distance = phi > 180 ? 360 - phi : phi;
-		return (distance);
+		return 1 - (distance / 180);
 	}
 
 	@Override
 	public double convert(double units) {
 		return units;
+	}
+	
+	@Override
+	public double maxDistance() {
+		return 1;
 	}
 
 }

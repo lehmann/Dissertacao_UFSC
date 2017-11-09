@@ -129,7 +129,7 @@ public class H_MSM extends TrajectorySimilarityCalculator<SemanticTrajectory> {
 		public double similarity(Move moveA, Move moveB) {
 			double score = 0.0;
 			for (int i = 0; i < dimensions.length; i++) {
-				score += dimensions[i].semantic.similarity(dimensions[i].attr.getValue(moveA), dimensions[i].attr.getValue(moveB), dimensions[i].threshold) * dimensions[i].weight;
+				score += dimensions[i].semantic.similarity(dimensions[i].attr.getValue(moveA), dimensions[i].attr.getValue(moveB)) * dimensions[i].weight;
 			}
 			return score;
 		}

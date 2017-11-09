@@ -133,7 +133,7 @@ public class H_MSM_StopMove extends TrajectorySimilarityCalculator<SemanticTraje
 					score += semantic.similarity(attr.getValue(moveA.getEnd()), attr.getValue(moveB.getEnd()), dimensions[i].threshold) * weight;
 				}
 			}
-			return score;
+			return score / 2;
 		}
 	}
 

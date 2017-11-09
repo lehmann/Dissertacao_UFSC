@@ -19,5 +19,10 @@ public class NumberDistance implements IDistanceFunction<Double> {
 	public double convert(double units) {
 		return units;
 	}
+	
+	@Override
+	public double maxDistance() {
+		return Double.MAX_VALUE;
+	}
 
 }
