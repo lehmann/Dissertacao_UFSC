@@ -31,9 +31,6 @@ public class MoveSemantic extends Semantic<Move, Number> {
 
 	@Override
 	public double distance(Move d1, Move d2) {
-		if(d1 == d2) {
-			return 0;
-		}
 		if (d1 == null || d2 == null) {
 			return desc.maxDistance();
 		}

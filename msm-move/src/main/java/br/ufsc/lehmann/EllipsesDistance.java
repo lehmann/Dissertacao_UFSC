@@ -19,17 +19,14 @@ public class EllipsesDistance implements IDistanceFunction<TPoint[]> {
 
 	@Override
 	public double distance(TPoint[] p, TPoint[] d) {
-		if(p == d) {
-			return 0;
-		}
 		if (p == null || d == null) {
 			return 1;
 		}
-		p = distanceFunction.convertToMercator(p);
-		d = distanceFunction.convertToMercator(d);
+		TPoint[] mercatorP = distanceFunction.convertToMercator(p);
+		TPoint[] mercatorD = distanceFunction.convertToMercator(d);
 		CreateEllipseMath ellipseMath = new CreateEllipseMath();
-		ETrajectory T1 = ellipseMath.createEllipticalTrajectoryFixed(-1, p);
-		ETrajectory T2 = ellipseMath.createEllipticalTrajectoryFixed(1, d);
+		ETrajectory T1 = ellipseMath.createEllipticalTrajectoryFixed(-1, mercatorP);
+		ETrajectory T2 = ellipseMath.createEllipticalTrajectoryFixed(1, mercatorD);
 		return 1 - ums.getSimilarity(//
 				T1, //
 				T2);

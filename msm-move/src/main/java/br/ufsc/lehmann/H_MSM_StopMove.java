@@ -155,7 +155,7 @@ public class H_MSM_StopMove extends TrajectorySimilarityCalculator<SemanticTraje
 		public double score(Move moveA, Move moveB) {
 			double score = 0.0;
 			for (int i = 0; i < dimensions.length; i++) {
-				score += dimensions[i].semantic.similarity(dimensions[i].attr.getValue(moveA), dimensions[i].attr.getValue(moveB), dimensions[i].threshold) * dimensions[i].weight;
+				score += dimensions[i].semantic.similarity(dimensions[i].attr.getValue(moveA), dimensions[i].attr.getValue(moveB)) * dimensions[i].weight;
 			}
 			return score;
 		}
@@ -177,9 +177,6 @@ public class H_MSM_StopMove extends TrajectorySimilarityCalculator<SemanticTraje
 		}
 		public Semantic<T, Number> getSemantic() {
 			return semantic;
-		}
-		public Number getThreshold() {
-			return threshold;
 		}
 		public double getWeight() {
 			return weight;
