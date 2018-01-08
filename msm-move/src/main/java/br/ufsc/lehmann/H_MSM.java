@@ -6,13 +6,9 @@ import java.util.List;
 import br.ufsc.core.trajectory.Semantic;
 import br.ufsc.core.trajectory.SemanticTrajectory;
 import br.ufsc.core.trajectory.StopSemantic;
-import br.ufsc.core.trajectory.semantic.Attribute;
 import br.ufsc.core.trajectory.semantic.AttributeType;
 import br.ufsc.core.trajectory.semantic.Move;
-import br.ufsc.core.trajectory.semantic.Stop;
 import br.ufsc.ftsm.base.TrajectorySimilarityCalculator;
-import br.ufsc.ftsm.related.MSM;
-import br.ufsc.ftsm.related.MSM.MSMSemanticParameter;
 
 public class H_MSM extends TrajectorySimilarityCalculator<SemanticTrajectory> {
 	
