@@ -1,15 +1,15 @@
 package br.ufsc.lehmann;
 
-import br.ufsc.core.trajectory.GeographicDistanceFunction;
+import br.ufsc.core.trajectory.SpatialDistanceFunction;
 import br.ufsc.core.trajectory.TPoint;
 import smile.math.distance.Distance;
 
 public class SmileDistanceWrapper implements Distance<TPoint> {
 
-	private GeographicDistanceFunction measure;
+	private SpatialDistanceFunction measure;
 	private Number threshold;
 
-	public SmileDistanceWrapper(GeographicDistanceFunction measure, Number threshold) {
+	public SmileDistanceWrapper(SpatialDistanceFunction measure, Number threshold) {
 		this.measure = measure;
 		this.threshold = threshold;
 	}

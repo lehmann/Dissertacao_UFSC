@@ -1,6 +1,6 @@
 package br.ufsc.lehmann;
 
-import br.ufsc.core.trajectory.GeographicDistanceFunction;
+import br.ufsc.core.trajectory.SpatialDistanceFunction;
 import br.ufsc.core.trajectory.IDistanceFunction;
 import br.ufsc.core.trajectory.TPoint;
 import smile.math.distance.DynamicTimeWarping;
@@ -9,7 +9,7 @@ public class DTWDistance implements IDistanceFunction<TPoint[]> {
 
 	private DynamicTimeWarping<TPoint> dtw;
 
-	public DTWDistance(GeographicDistanceFunction func, int geographicThreshold) {
+	public DTWDistance(SpatialDistanceFunction func, Number geographicThreshold) {
 		dtw = new DynamicTimeWarping<TPoint>(new SmileDistanceWrapper(func, geographicThreshold));
 	}
 
