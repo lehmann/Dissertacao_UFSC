@@ -3,14 +3,19 @@ package br.ufsc.lehmann;
 import br.ufsc.core.trajectory.SpatialDistanceFunction;
 import br.ufsc.core.trajectory.IDistanceFunction;
 import br.ufsc.core.trajectory.TPoint;
+import br.ufsc.utils.LatLongDistanceFunction;
 import smile.math.distance.DynamicTimeWarping;
 
 public class DTWDistance implements IDistanceFunction<TPoint[]> {
 
 	private DynamicTimeWarping<TPoint> dtw;
 
-	public DTWDistance(SpatialDistanceFunction func, Number geographicThreshold) {
-		dtw = new DynamicTimeWarping<TPoint>(new SmileDistanceWrapper(func, geographicThreshold));
+	public DTWDistance(SpatialDistanceFunction func) {
+		dtw = new DynamicTimeWarping<TPoint>(new SmileDistanceWrapper(func));
+	}
+
+	public DTWDistance(SpatialDistanceFunction distanceFunction, Number i) {
+		this(distanceFunction);
 	}
 
 	@Override
@@ -19,7 +24,7 @@ public class DTWDistance implements IDistanceFunction<TPoint[]> {
 			return 0;
 		}
 		if (p == null || d == null) {
-			return Double.MAX_VALUE;
+			return 1;
 		}
 		return dtw.d(p, d) / Math.max(p.length, d.length);
 	}

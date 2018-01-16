@@ -1,12 +1,9 @@
 package br.ufsc.lehmann;
 
-import java.util.Arrays;
 import java.util.Objects;
 
-import org.apache.commons.lang3.ArrayUtils;
-
-import br.ufsc.core.trajectory.SpatialDistanceFunction;
 import br.ufsc.core.trajectory.IDistanceFunction;
+import br.ufsc.core.trajectory.SpatialDistanceFunction;
 import br.ufsc.core.trajectory.TPoint;
 import br.ufsc.ftsm.base.ETrajectory;
 import br.ufsc.ftsm.related.UMS;
