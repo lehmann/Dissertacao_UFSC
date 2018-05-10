@@ -1,9 +1,8 @@
 package br.ufsc.lehmann;
 
-import br.ufsc.core.trajectory.SpatialDistanceFunction;
 import br.ufsc.core.trajectory.IDistanceFunction;
+import br.ufsc.core.trajectory.SpatialDistanceFunction;
 import br.ufsc.core.trajectory.TPoint;
-import br.ufsc.utils.LatLongDistanceFunction;
 import smile.math.distance.DynamicTimeWarping;
 
 public class DTWDistance implements IDistanceFunction<TPoint[]> {
@@ -26,7 +25,7 @@ public class DTWDistance implements IDistanceFunction<TPoint[]> {
 		if (p == null || d == null) {
 			return 1;
 		}
-		return dtw.d(p, d) / Math.max(p.length, d.length);
+		return dtw.d(p, d);
 	}
 
 	@Override
@@ -36,7 +35,7 @@ public class DTWDistance implements IDistanceFunction<TPoint[]> {
 	
 	@Override
 	public double maxDistance() {
-		return 1;
+		return Double.POSITIVE_INFINITY;
 	}
 
 }

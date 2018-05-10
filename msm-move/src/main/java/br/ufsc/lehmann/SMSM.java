@@ -1,9 +1,9 @@
 package br.ufsc.lehmann;
 
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
+
+import com.google.common.collect.ComputationException;
 
 import br.ufsc.core.trajectory.Semantic;
 import br.ufsc.core.trajectory.SemanticTrajectory;
@@ -100,6 +100,9 @@ public class SMSM extends TrajectorySimilarityCalculator<SemanticTrajectory> {
 		}
 		public boolean match(Move moveA, Move moveB) {
 			for (int i = 0; i < dimensions.length; i++) {
+				if(!dimensions[i].isSpatial) {
+					continue;
+				}
 				boolean matchStart = false;
 				Number threshold = dimensions[i].threshold;
 				AttributeType attr = dimensions[i].attr;
@@ -136,14 +139,14 @@ public class SMSM extends TrajectorySimilarityCalculator<SemanticTrajectory> {
 				} else if(moveA.getStart() != null && moveB.getStart() != null) {
 					Object valueA = attr.getValue(moveA.getStart());
 					Object valueB = attr.getValue(moveB.getStart());
-					score += semantic.similarity(valueA, valueB, t) * weight;
+					score += (semantic.match(valueA, valueB, t) ? 1 : 0) * weight;
 				}
 				if(moveA.getEnd() == null && moveB.getEnd() == null) {
 					score += weight;
 				} else if(moveA.getEnd() != null && moveB.getEnd() != null) {
 					Object valueA = attr.getValue(moveA.getEnd());
 					Object valueB = attr.getValue(moveB.getEnd());
-					score += semantic.similarity(valueA, valueB, t) * weight;
+					score += (semantic.match(valueA, valueB, t) ? 1 : 0) * weight;
 				}
 			}
 			return score / 2;
@@ -172,22 +175,28 @@ public class SMSM extends TrajectorySimilarityCalculator<SemanticTrajectory> {
 				Semantic s = d.semantic;
 				Object valueA = d.attr.getValue(moveA);
 				Object valueB = d.attr.getValue(moveB);
-				score += s.similarity(valueA, valueB) * d.weight;
+				score += (s.match(valueA, valueB, d.computeThreshold(moveA, moveB)) ? 1 : 0) * d.weight;
+//				score += s.similarity(valueA, valueB) * d.weight;
 			}
 			return score;
 		}
 	}
 
 	public static class H_MSM_DimensionParameters<T> {
+		private boolean isSpatial;
 		private AttributeType attr;
 		private Semantic<T, Number> semantic;
 		private Number threshold;
 		private double weight;
 		public H_MSM_DimensionParameters(Semantic<T, Number> semantic, AttributeType attr, Number threshold, double weight) {
+			this(semantic, attr, threshold, weight, false);
+		}
+		public H_MSM_DimensionParameters(Semantic<T, Number> semantic, AttributeType attr, Number threshold, double weight, boolean isSpatial) {
 			this.semantic = semantic;
 			this.attr = attr;
 			this.threshold = threshold;
 			this.weight = weight;
+			this.isSpatial = isSpatial;
 		}
 		public AttributeType getAttr() {
 			return attr;
@@ -197,6 +206,12 @@ public class SMSM extends TrajectorySimilarityCalculator<SemanticTrajectory> {
 		}
 		public double getWeight() {
 			return weight;
+		}
+		public Number computeThreshold(Move moveA, Move moveB) {
+			if(!(threshold instanceof ComputableDouble)) {
+				return threshold;
+			}
+			return ((ComputableDouble) threshold).compute(moveA, moveB);
 		}
 		
 	}
