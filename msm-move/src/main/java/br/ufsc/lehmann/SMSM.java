@@ -36,6 +36,9 @@ public class SMSM extends TrajectorySimilarityCalculator<SemanticTrajectory> {
 		List<Move> tuplesB = tuples(B);
 		int n = tuplesA.size();
 		int m = tuplesB.size();
+		if(n == 0 || m == 0) {
+			return 0.0;
+		}
 		double bScore[] = new double[m];
 		
 		double parityAB = 0.0;
