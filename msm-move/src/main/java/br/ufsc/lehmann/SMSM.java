@@ -157,19 +157,14 @@ public class SMSM extends TrajectorySimilarityCalculator<SemanticTrajectory> {
 	}
 
 	public static class H_MSM_MoveSemanticParameters {
-		private MoveSemantic semantic;
 		private H_MSM_DimensionParameters[] dimensions;
 		private double weight;
 		public H_MSM_MoveSemanticParameters(MoveSemantic semantic, H_MSM_DimensionParameters[] dimensions) {
 			this(semantic, dimensions, 0.5);
 		}
 		public H_MSM_MoveSemanticParameters(MoveSemantic semantic, H_MSM_DimensionParameters[] dimensions, double weight) {
-			this.semantic = semantic;
 			this.dimensions = dimensions;
 			this.weight = weight;
-		}
-		public MoveSemantic getMoveSemantic() {
-			return semantic;
 		}
 		public double score(Move moveA, Move moveB) {
 			double score = 0.0;
