@@ -1,9 +1,13 @@
 package br.ufsc.lehmann;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-import com.google.common.collect.ComputationException;
+import com.google.common.collect.Streams;
 
 import br.ufsc.core.trajectory.Semantic;
 import br.ufsc.core.trajectory.SemanticTrajectory;
@@ -13,12 +17,12 @@ import br.ufsc.core.trajectory.semantic.Move;
 import br.ufsc.core.trajectory.semantic.Stop;
 import br.ufsc.ftsm.base.TrajectorySimilarityCalculator;
 
-public class SMSM extends TrajectorySimilarityCalculator<SemanticTrajectory> {
+public class SMSMExtended extends TrajectorySimilarityCalculator<SemanticTrajectory> {
 	
-	private SMSM_MoveSemanticParameters moveParams;
-	private SMSM_StopSemanticParameters stopParams;
+	private SMSM.SMSM_MoveSemanticParameters moveParams;
+	private SMSM.SMSM_StopSemanticParameters stopParams;
 
-	public SMSM(SMSM_MoveSemanticParameters moveParams, SMSM_StopSemanticParameters stopParams) {
+	public SMSMExtended(SMSM.SMSM_MoveSemanticParameters moveParams, SMSM.SMSM_StopSemanticParameters stopParams) {
 		if(moveParams == null) {
 			throw new IllegalArgumentException("Params can not be null");
 		}
@@ -50,9 +54,9 @@ public class SMSM extends TrajectorySimilarityCalculator<SemanticTrajectory> {
 			for (int j = 0; j < m; j++) {
 				Move moveB = tuplesB.get(j);
 				boolean stopMatch = stopParams.match(moveA, moveB);
-				double score = stopParams.score(moveA, moveB) * stopParams.weight;
+				double score = stopParams.score(moveA, moveB) * stopParams.getWeight();
 				if(stopMatch) {
-					score += (moveParams.score(moveA, moveB)) * moveParams.weight;
+					score += (moveParams.score(moveA, moveB)) * moveParams.getWeight();
 				}
 				
 				if (score >= maxScore) {
@@ -76,7 +80,7 @@ public class SMSM extends TrajectorySimilarityCalculator<SemanticTrajectory> {
 	private List<Move> tuples(SemanticTrajectory a) {
 		List<Move> ret = new ArrayList<Move>();
 		for (int i = 0; i < a.length(); i++) {
-			Stop s = stopParams.stopSemantic.getData(a, i);
+			Stop s = stopParams.getStopSemantic().getData(a, i);
 			if(s != null) {
 				if(s.getPreviousMove() != null && !ret.contains(s.getPreviousMove())) {
 					ret.add(s.getPreviousMove());
@@ -84,19 +88,27 @@ public class SMSM extends TrajectorySimilarityCalculator<SemanticTrajectory> {
 				if(s.getNextMove() != null && !ret.contains(s.getNextMove())) {
 					ret.add(s.getNextMove());
 				}
+				ret.addAll(mergedMoves(s, s).collect(Collectors.toList()));
 			}
 		}
 		return ret;
 	}
 
-	public static class SMSM_StopSemanticParameters {
-		private SMSM_DimensionParameters[] dimensions;
+	private Stream<? extends Move> mergedMoves(Stop anchor, Stop s) {
+		if(s.getNextMove() != null) {
+			return Streams.concat(Streams.stream(Optional.of(new MergedMove(anchor.getNextMove(), s.getNextMove()))), mergedMoves(anchor, s.getNextMove().getEnd()));
+		}
+		return Collections.<Move>emptyList().stream();
+	}
+
+	public static class SMSM_Extended_StopSemanticParameters {
+		private SMSM_Extended_DimensionParameters[] dimensions;
 		private StopSemantic stopSemantic;
 		private double weight;
-		public SMSM_StopSemanticParameters(StopSemantic stopSemantic, SMSM_DimensionParameters[] dimensions) {
+		public SMSM_Extended_StopSemanticParameters(StopSemantic stopSemantic, SMSM_Extended_DimensionParameters[] dimensions) {
 			this(stopSemantic, dimensions, 0.5);
 		}
-		public SMSM_StopSemanticParameters(StopSemantic stopSemantic, SMSM_DimensionParameters[] dimensions, double weight) {
+		public SMSM_Extended_StopSemanticParameters(StopSemantic stopSemantic, SMSM_Extended_DimensionParameters[] dimensions, double weight) {
 			this.stopSemantic = stopSemantic;
 			this.dimensions = dimensions;
 			this.weight = weight;
@@ -154,31 +166,22 @@ public class SMSM extends TrajectorySimilarityCalculator<SemanticTrajectory> {
 			}
 			return score / 2;
 		}
-		public SMSM_DimensionParameters[] getDimensions() {
-			return dimensions;
-		}
-		public StopSemantic getStopSemantic() {
-			return stopSemantic;
-		}
-		public double getWeight() {
-			return weight;
-		}
 	}
 
-	public static class SMSM_MoveSemanticParameters {
-		private SMSM_DimensionParameters[] dimensions;
+	public static class SMSM_Extended_MoveSemanticParameters {
+		private SMSM_Extended_DimensionParameters[] dimensions;
 		private double weight;
-		public SMSM_MoveSemanticParameters(MoveSemantic semantic, SMSM_DimensionParameters[] dimensions) {
+		public SMSM_Extended_MoveSemanticParameters(MoveSemantic semantic, SMSM_Extended_DimensionParameters[] dimensions) {
 			this(semantic, dimensions, 0.5);
 		}
-		public SMSM_MoveSemanticParameters(MoveSemantic semantic, SMSM_DimensionParameters[] dimensions, double weight) {
+		public SMSM_Extended_MoveSemanticParameters(MoveSemantic semantic, SMSM_Extended_DimensionParameters[] dimensions, double weight) {
 			this.dimensions = dimensions;
 			this.weight = weight;
 		}
 		public double score(Move moveA, Move moveB) {
 			double score = 0.0;
 			for (int i = 0; i < dimensions.length; i++) {
-				SMSM_DimensionParameters d = dimensions[i];
+				SMSM_Extended_DimensionParameters d = dimensions[i];
 				Semantic s = d.semantic;
 				Object valueA = d.attr.getValue(moveA);
 				Object valueB = d.attr.getValue(moveB);
@@ -187,24 +190,18 @@ public class SMSM extends TrajectorySimilarityCalculator<SemanticTrajectory> {
 			}
 			return score;
 		}
-		public SMSM_DimensionParameters[] getDimensions() {
-			return dimensions;
-		}
-		public double getWeight() {
-			return weight;
-		}
 	}
 
-	public static class SMSM_DimensionParameters<T> {
+	public static class SMSM_Extended_DimensionParameters<T> {
 		private boolean isSpatial;
 		private AttributeType attr;
 		private Semantic<T, Number> semantic;
 		private Number threshold;
 		private double weight;
-		public SMSM_DimensionParameters(Semantic<T, Number> semantic, AttributeType attr, Number threshold, double weight) {
+		public SMSM_Extended_DimensionParameters(Semantic<T, Number> semantic, AttributeType attr, Number threshold, double weight) {
 			this(semantic, attr, threshold, weight, false);
 		}
-		public SMSM_DimensionParameters(Semantic<T, Number> semantic, AttributeType attr, Number threshold, double weight, boolean isSpatial) {
+		public SMSM_Extended_DimensionParameters(Semantic<T, Number> semantic, AttributeType attr, Number threshold, double weight, boolean isSpatial) {
 			this.semantic = semantic;
 			this.attr = attr;
 			this.threshold = threshold;
