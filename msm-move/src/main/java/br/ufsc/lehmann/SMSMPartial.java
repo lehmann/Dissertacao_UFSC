@@ -6,9 +6,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.LineString;
-import org.locationtech.jts.geom.Polygon;
 import org.locationtech.jts.geom.PrecisionModel;
 import org.locationtech.jts.geom.impl.CoordinateArraySequence;
 
@@ -127,8 +127,10 @@ public class SMSMPartial extends TrajectorySimilarityCalculator<SemanticTrajecto
 			GeometryFactory factory = new GeometryFactory(new PrecisionModel(PrecisionModel.FLOATING));
 			List<Coordinate> stopCoordinates = pointsEndStopB.stream().map(p -> new Coordinate(p.getX(), p.getY())).collect(Collectors.toList());
 			List<Coordinate> moveCoordinates = Arrays.stream(pointsMoveA).map(p -> new Coordinate(p.getX(), p.getY())).collect(Collectors.toList());
-			Polygon stopPoly = factory.createPolygon(new CoordinateArraySequence(stopCoordinates.toArray(new Coordinate[stopCoordinates.size()])));
-			LineString movePoly = factory.createLineString(new CoordinateArraySequence(moveCoordinates.toArray(new Coordinate[moveCoordinates.size()])));
+			Geometry stopPoly = factory.createPolygon(new CoordinateArraySequence(stopCoordinates.toArray(new Coordinate[stopCoordinates.size()])));
+			stopPoly = stopPoly.buffer(0);
+			Geometry movePoly = factory.createLineString(new CoordinateArraySequence(moveCoordinates.toArray(new Coordinate[moveCoordinates.size()])));
+			movePoly = movePoly.buffer(0);
 			boolean crosses = movePoly.crosses(stopPoly);
 			if(crosses) {
 				return true;
