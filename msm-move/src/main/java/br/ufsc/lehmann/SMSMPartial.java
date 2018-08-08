@@ -68,7 +68,7 @@ public class SMSMPartial extends TrajectorySimilarityCalculator<SemanticTrajecto
 				} else {
 					boolean stopInMove = stopMoveParams.match(moveA, moveB);
 					if(stopInMove) {
-						score += (moveParams.score(moveA, moveB)) * (moveParams.getWeight() * (2/3));
+						score += (moveParams.score(moveA, moveB)) * (moveParams.getWeight());
 					}
 				}
 				
