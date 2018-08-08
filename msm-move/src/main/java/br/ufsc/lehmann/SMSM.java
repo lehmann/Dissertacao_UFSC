@@ -3,8 +3,6 @@ package br.ufsc.lehmann;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.google.common.collect.ComputationException;
-
 import br.ufsc.core.trajectory.Semantic;
 import br.ufsc.core.trajectory.SemanticTrajectory;
 import br.ufsc.core.trajectory.StopSemantic;
@@ -103,7 +101,7 @@ public class SMSM extends TrajectorySimilarityCalculator<SemanticTrajectory> {
 		}
 		public boolean match(Move moveA, Move moveB) {
 			for (int i = 0; i < dimensions.length; i++) {
-				if(!dimensions[i].isSpatial) {
+				if(!dimensions[i].isSpatial()) {
 					continue;
 				}
 				boolean matchStart = false;
@@ -209,7 +207,7 @@ public class SMSM extends TrajectorySimilarityCalculator<SemanticTrajectory> {
 			this.attr = attr;
 			this.threshold = threshold;
 			this.weight = weight;
-			this.isSpatial = isSpatial;
+			this.setSpatial(isSpatial);
 		}
 		public AttributeType getAttr() {
 			return attr;
@@ -225,6 +223,12 @@ public class SMSM extends TrajectorySimilarityCalculator<SemanticTrajectory> {
 				return threshold;
 			}
 			return ((ComputableDouble) threshold).compute(moveA, moveB);
+		}
+		public boolean isSpatial() {
+			return isSpatial;
+		}
+		public void setSpatial(boolean isSpatial) {
+			this.isSpatial = isSpatial;
 		}
 		
 	}
