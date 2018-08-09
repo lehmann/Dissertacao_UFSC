@@ -26,6 +26,10 @@ public class MergedMove extends Move {
 				info.getUser(), info.getDimensaoData());
 		this.info = info;
 	}
+
+	public MovesInfo getInfo() {
+		return info;
+	}
 	
 	@Override
 	public int hashCode() {
@@ -52,7 +56,7 @@ public class MergedMove extends Move {
 		return true;
 	}
 
-	private static class MovesInfo {
+	static class MovesInfo {
 		private Move first;
 		private Move last;
 		private TPoint[] points;
@@ -60,6 +64,8 @@ public class MergedMove extends Move {
 		private double traveledDistance;
 		private List<String> streetsName;
 		private double angle;
+		
+		private int mergedStopsCount = 0;
 		
 		public MovesInfo(Move first2, Move last2) {
 			this.first = first2;
@@ -74,6 +80,7 @@ public class MergedMove extends Move {
 				this.traveledDistance += first2.getTravelledDistance()/* + first2.getEnd().getTraveledDistance()*/;
 				this.streetsName.add(first2.getStreetName());
 				first2 = first2.getEnd().getNextMove();
+				mergedStopsCount++;
 			}
 			points = p.toArray(new TPoint[p.size()]);
 			if(points.length > 1) {
@@ -133,6 +140,9 @@ public class MergedMove extends Move {
 		}
 		public TPoint[] getGPSPoints() {
 			return points;
+		}
+		public int getMergedStopsCount() {
+			return mergedStopsCount;
 		}
 	}
 }
