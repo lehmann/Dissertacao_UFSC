@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.google.common.collect.Streams;
+import com.google.common.math.BigIntegerMath;
 
 import br.ufsc.core.trajectory.Semantic;
 import br.ufsc.core.trajectory.SemanticTrajectory;
@@ -67,12 +68,14 @@ public class SMSMart extends TrajectorySimilarityCalculator<SemanticTrajectory> 
 
 					double unmatchedStopsWeight = 0;
 					if(moveA instanceof MergedMove) {
-						unmatchedStopsWeight += (1 / Math.log1p(((MergedMove) moveA).getInfo().getMergedStopsCount())) / 2;
+						int mergedStopsCount = ((MergedMove) moveA).getInfo().getMergedStopsCount();
+						unmatchedStopsWeight += Math.sqrt(BigIntegerMath.factorial(mergedStopsCount + 1).doubleValue()) / 2;
 					} else {
 						unmatchedStopsWeight += 0.5;
 					}
 					if(moveB instanceof MergedMove) {
-						unmatchedStopsWeight += (1 / Math.log1p(((MergedMove) moveB).getInfo().getMergedStopsCount())) / 2;
+						int mergedStopsCount = ((MergedMove) moveB).getInfo().getMergedStopsCount();
+						unmatchedStopsWeight += Math.sqrt(BigIntegerMath.factorial(mergedStopsCount + 1).doubleValue()) / 2;
 					} else {
 						unmatchedStopsWeight += 0.5;
 					}
