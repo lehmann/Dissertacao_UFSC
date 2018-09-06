@@ -161,6 +161,13 @@ public class SMSM extends TrajectorySimilarityCalculator<SemanticTrajectory> {
 		public double getWeight() {
 			return weight;
 		}
+		public String paramsToString() {
+			String semanticsString = "";
+			for (SMSM_DimensionParameters d : dimensions) {
+				semanticsString += "(attr=" + d.attr.name() + ", threshold=" + d.threshold + ", weight=" + d.weight + ")";
+			}
+			return "Stop's weight: " + weight + ", semantics: " + semanticsString;
+		}
 	}
 
 	public static class SMSM_MoveSemanticParameters {
@@ -190,6 +197,13 @@ public class SMSM extends TrajectorySimilarityCalculator<SemanticTrajectory> {
 		}
 		public double getWeight() {
 			return weight;
+		}
+		public String paramsToString() {
+			String semanticsString = "";
+			for (SMSM_DimensionParameters d : dimensions) {
+				semanticsString += "(attr=" + d.attr.name() + ", threshold=" + d.threshold + ", weight=" + d.weight + ")";
+			}
+			return "Stop's weight: " + weight + ", semantics: " + semanticsString;
 		}
 	}
 
@@ -231,5 +245,11 @@ public class SMSM extends TrajectorySimilarityCalculator<SemanticTrajectory> {
 			this.isSpatial = isSpatial;
 		}
 		
+	}
+
+	public String paramsToString() {
+		String ret = "Move's params: " + moveParams.paramsToString();
+		ret += "Stop's params: " + stopParams.paramsToString();
+		return ret;
 	}
 }
