@@ -247,7 +247,8 @@ public class SMSM extends TrajectorySimilarityCalculator<SemanticTrajectory> {
 		
 	}
 
-	public String paramsToString() {
+	@Override
+	public String parametrization() {
 		String ret = "Move's params: " + moveParams.paramsToString();
 		ret += "Stop's params: " + stopParams.paramsToString();
 		return ret;
